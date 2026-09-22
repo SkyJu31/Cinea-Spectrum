@@ -2,942 +2,1590 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CinéIA Spectrum — Une image, un monde de vidéos</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#080b14">
+<title>CinéIA Spectrum — Story Studio</title>
+
 <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-        --bg:#0a0a0a; --panel:#151515; --panel-2:#1a1a1a; --border:#2a2a2a;
-        --accent:#c4b5fd; --accent-dark:#a78bfa; --text:#e0e0e0; --text-dim:#888;
-        --success:#4ade80; --error:#f87171; --warn:#facc15;
-    }
-    body { font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
-        background:var(--bg); color:var(--text); min-height:100vh; display:flex;
-        flex-direction:column; align-items:center; padding:2rem 1rem; }
-    .container { max-width:1200px; width:100%; }
-    header { text-align:center; margin-bottom:2rem; }
-    h1 { font-size:1.8rem; font-weight:300; letter-spacing:0.05em; color:#f0f0f0; }
-    .subtitle { color:var(--text-dim); font-size:0.85rem; font-style:italic; margin-top:0.3rem; }
-
-    .settings-toggle { background:transparent; border:1px solid var(--border);
-        color:var(--text-dim); padding:0.5rem 1rem; border-radius:8px; font-size:0.8rem;
-        cursor:pointer; margin-bottom:1rem; }
-    .settings-toggle:hover { border-color:var(--accent-dark); color:var(--accent); }
-    .settings-panel { background:var(--panel); border:1px solid var(--border);
-        border-radius:12px; padding:1.25rem; margin-bottom:1.5rem; display:none; }
-    .settings-panel.visible { display:block; }
-    .settings-row { display:flex; gap:0.75rem; align-items:end; }
-    .settings-hint { font-size:0.75rem; color:var(--text-dim); margin-top:0.5rem; }
-
-    .quota-bar { background:var(--panel); border:1px solid var(--border); border-radius:12px;
-        padding:0.8rem 1.2rem; margin-bottom:1.5rem; display:flex; gap:1.5rem;
-        flex-wrap:wrap; align-items:center; font-size:0.75rem; }
-    .quota-item { display:flex; align-items:center; gap:0.5rem; }
-    .quota-item .label { color:var(--text-dim); }
-    .quota-item .value { font-weight:600; font-variant-numeric:tabular-nums; }
-    .quota-item .value.ok { color:var(--success); }
-    .quota-item .value.warn { color:var(--warn); }
-    .quota-item .value.danger { color:var(--error); }
-
-    .btn { padding:1rem 2rem; background:var(--accent-dark); color:#0a0a0a; border:none;
-        border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;
-        transition:background 0.2s,transform 0.1s; width:100%; }
-    .btn:hover:not(:disabled) { background:var(--accent); }
-    .btn:active:not(:disabled) { transform:scale(0.98); }
-    .btn:disabled { background:#333; color:#666; cursor:not-allowed; }
-    .btn-secondary { background:#2a2a2a; color:var(--text); }
-    .btn-secondary:hover:not(:disabled) { background:#3a3a3a; }
-
-    .upload-area { background:var(--panel); border:2px dashed var(--border);
-        border-radius:16px; padding:2.5rem; text-align:center; cursor:pointer;
-        transition:border-color 0.2s, background 0.2s; margin-bottom:1.5rem; }
-    .upload-area:hover, .upload-area.dragover { border-color:var(--accent-dark); background:#1a1525; }
-    .upload-area input[type="file"] { display:none; }
-    .upload-icon { font-size:3rem; margin-bottom:1rem; }
-    .upload-text { font-size:1.1rem; color:var(--text); margin-bottom:0.5rem; }
-    .upload-hint { font-size:0.8rem; color:var(--text-dim); }
-    .preview-thumb { max-width:100%; max-height:200px; border-radius:10px;
-        margin:1rem auto 0; display:none; }
-    .preview-thumb.visible { display:block; }
-
-    .options-row { display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
-    .options-row > * { flex:1; min-width:200px; }
-    label { display:block; font-size:0.8rem; color:var(--text-dim); margin-bottom:0.4rem;
-        text-transform:uppercase; letter-spacing:0.08em; }
-    select, input[type="password"] {
-        width:100%; padding:0.85rem 1rem; border-radius:10px; border:1px solid var(--border);
-        background:#0f0f0f; color:var(--text); font-family:inherit; font-size:0.95rem; }
-    select:focus, input:focus { outline:none; border-color:var(--accent-dark); }
-    select option { background:#1a1a1a; color:var(--text); }
-
-    .styles-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
-        gap:0.6rem; margin-bottom:1.5rem; max-height:450px; overflow-y:auto;
-        padding:0.5rem; background:var(--panel); border-radius:12px;
-        border:1px solid var(--border); }
-    .style-checkbox { display:flex; align-items:center; gap:0.5rem; padding:0.6rem 0.8rem;
-        background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
-        cursor:pointer; font-size:0.8rem; transition:all 0.2s; user-select:none; }
-    .style-checkbox:hover { border-color:var(--accent-dark); }
-    .style-checkbox.checked { background:#2a2035; border-color:var(--accent-dark); color:var(--accent); }
-    .style-checkbox input { width:auto; margin:0; accent-color:var(--accent-dark); }
-
-    .section-title { font-size:0.85rem; color:var(--accent-dark); text-transform:uppercase;
-        letter-spacing:0.1em; margin-bottom:0.8rem; font-weight:600; }
-
-    .queue-panel { margin-top:1.5rem; }
-    .queue-item { display:flex; align-items:center; gap:1rem; padding:0.8rem 1rem;
-        background:var(--panel); border:1px solid var(--border); border-radius:10px;
-        margin-bottom:0.5rem; transition:border-color 0.3s, opacity 0.3s; }
-    .queue-item.pending { opacity:0.5; }
-    .queue-item.processing { border-color:var(--accent-dark); }
-    .queue-item.done { border-color:var(--success); }
-    .queue-item.failed { border-color:var(--error); }
-    .queue-icon { font-size:1.2rem; width:2rem; text-align:center; flex-shrink:0; }
-    .queue-info { flex:1; min-width:0; }
-    .queue-style { font-size:0.85rem; color:var(--accent); font-weight:600; }
-    .queue-meta { font-size:0.7rem; color:var(--text-dim); margin-top:0.15rem;
-        display:flex; gap:0.8rem; flex-wrap:wrap; }
-    .queue-status { font-size:0.75rem; color:var(--text-dim); text-align:right;
-        min-width:90px; flex-shrink:0; }
-
-    .video-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
-        gap:1rem; margin-top:1.5rem; }
-    .video-item { background:var(--panel-2); border-radius:12px; overflow:hidden;
-        border:1px solid var(--border); animation:fadeIn 0.6s ease-in; }
-    @keyframes fadeIn { from{opacity:0; transform:translateY(10px);}
-        to{opacity:1; transform:translateY(0);} }
-    .video-item video { width:100%; display:block; aspect-ratio:9/16; object-fit:cover;
-        background:#000; }
-    .video-caption { padding:0.6rem 0.8rem; background:var(--panel); }
-    .video-caption-title { font-size:0.8rem; color:var(--accent); font-weight:600; }
-    .video-caption-meta { font-size:0.7rem; color:var(--text-dim); margin-top:0.2rem; }
-
-    .log-box { margin-top:1rem; padding:0.75rem; background:#0f0f0f; border-radius:10px;
-        border:1px solid #222; font-family:ui-monospace,monospace; font-size:0.7rem;
-        color:#666; max-height:180px; overflow-y:auto; display:none; }
-    .log-box.visible { display:block; }
-    .log-box div { padding:1px 0; }
-    .log-box .ok { color:var(--success); }
-    .log-box .err { color:var(--error); }
-    .log-box .warn { color:var(--warn); }
-    .log-box .hl { color:var(--accent); }
-
-    .status-line { font-size:0.9rem; color:var(--accent-dark); margin-bottom:1rem;
-        display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; }
-    .status-line .dot { width:8px; height:8px; border-radius:50%; background:var(--accent-dark);
-        animation:pulse 1.5s infinite; flex-shrink:0; }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-    .cooldown-badge { background:#3a2a15; color:var(--warn); padding:0.2rem 0.6rem;
-        border-radius:6px; font-size:0.75rem; font-weight:600; }
-    .error-box { background:#2a1515; border:1px solid var(--error); border-radius:10px;
-        padding:1rem; color:var(--error); font-size:0.85rem; margin-top:1rem; display:none; }
-    .error-box.visible { display:block; }
-    .hidden { display:none !important; }
-
-    .duration-info { background:#1a2535; border-left:3px solid var(--accent);
-        padding:0.6rem 0.9rem; border-radius:8px; font-size:0.78rem; color:var(--accent);
-        margin-bottom:1rem; }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#080b14;
+  color:#f5f7ff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.container{
+  max-width:1050px;
+  margin:auto;
+  padding:20px;
+}
+header{
+  text-align:center;
+  padding:15px 0 25px;
+}
+h1{
+  margin:0;
+  font-size:30px;
+}
+.subtitle{
+  color:#9da6bd;
+  margin-top:8px;
+}
+.card{
+  background:#111624;
+  border:1px solid #252c40;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:18px;
+}
+h2{
+  font-size:19px;
+  margin:0 0 15px;
+}
+label{
+  display:block;
+  font-weight:600;
+  margin:12px 0 7px;
+}
+input,textarea,select{
+  width:100%;
+  background:#080b14;
+  color:white;
+  border:1px solid #30384e;
+  border-radius:11px;
+  padding:12px;
+  font-size:15px;
+}
+textarea{
+  min-height:120px;
+  resize:vertical;
+}
+small{
+  color:#8e97ad;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+@media(max-width:650px){
+  .grid{grid-template-columns:1fr}
+}
+button{
+  border:0;
+  border-radius:12px;
+  padding:13px 16px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+}
+.primary{
+  width:100%;
+  background:#6d5dfc;
+  color:white;
+  font-size:17px;
+  padding:16px;
+}
+.primary:disabled{
+  opacity:.45;
+}
+.secondary{
+  background:#20283b;
+  color:white;
+}
+.danger{
+  background:#3a1820;
+  color:#ff9baa;
+}
+.imageBox{
+  border:2px dashed #30384e;
+  border-radius:15px;
+  padding:20px;
+  text-align:center;
+}
+#preview{
+  max-width:100%;
+  max-height:350px;
+  border-radius:14px;
+  margin-top:15px;
+  display:none;
+}
+.styleGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+}
+@media(max-width:650px){
+  .styleGrid{grid-template-columns:repeat(2,1fr)}
+}
+.style{
+  background:#0b0f1b;
+  border:1px solid #2b3348;
+  color:#dfe4f3;
+  padding:11px 8px;
+  border-radius:11px;
+  text-align:center;
+  font-size:13px;
+}
+.style.selected{
+  border-color:#806fff;
+  background:#211d46;
+}
+.style .icon{
+  font-size:22px;
+  display:block;
+  margin-bottom:5px;
+}
+.motionGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+}
+.motion{
+  background:#0b0f1b;
+  border:1px solid #2b3348;
+  color:white;
+  padding:11px;
+  border-radius:10px;
+}
+.motion.selected{
+  border-color:#806fff;
+  background:#211d46;
+}
+.scene{
+  border:1px solid #2a3247;
+  background:#0b0f19;
+  border-radius:14px;
+  padding:15px;
+  margin-top:12px;
+}
+.sceneHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.sceneTitle{
+  font-weight:800;
+}
+.status{
+  font-size:12px;
+  padding:5px 8px;
+  border-radius:8px;
+  background:#252d40;
+}
+.status.running{
+  background:#413918;
+  color:#ffe58b;
+}
+.status.done{
+  background:#173c2c;
+  color:#9ff0c4;
+}
+.status.error{
+  background:#401b24;
+  color:#ff9cae;
+}
+video{
+  width:100%;
+  max-height:650px;
+  border-radius:14px;
+  margin-top:12px;
+  background:black;
+}
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#05070d;
+  border-radius:12px;
+  padding:12px;
+  color:#aeb8ce;
+  font-size:12px;
+  max-height:300px;
+  overflow:auto;
+}
+.hidden{
+  display:none!important;
+}
+.progress{
+  height:8px;
+  background:#242b3c;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+}
+.progressBar{
+  height:100%;
+  width:0%;
+  background:#7465ff;
+  transition:width .3s;
+}
+.notice{
+  background:#171d2d;
+  border-left:4px solid #7162ff;
+  padding:12px;
+  border-radius:8px;
+  color:#b9c1d5;
+  font-size:13px;
+  line-height:1.5;
+}
 </style>
 </head>
+
 <body>
+
 <div class="container">
-    <header>
-        <h1>CinéIA Spectrum</h1>
-        <p class="subtitle">Une image. Un monde de vidéos. — 5 à 10 secondes par clip</p>
-    </header>
 
-    <button class="settings-toggle" onclick="document.getElementById('settings-panel').classList.toggle('visible')">
-        ⚙️ Paramètres API
-    </button>
-    <div id="settings-panel" class="settings-panel">
-        <div class="settings-row">
-            <div style="flex:1;">
-                <label for="api-key-input">Clé API Agnes AI</label>
-                <input type="password" id="api-key-input" placeholder="sk-...">
-            </div>
-            <button class="btn" style="width:auto; padding:0.85rem 1.5rem;" onclick="saveApiKey()">Sauvegarder</button>
-        </div>
-        <p class="settings-hint">Stockée localement. Jamais envoyée ailleurs qu'à l'API Agnes AI.</p>
+<header>
+  <h1>🎬 CinéIA Spectrum</h1>
+  <div class="subtitle">Story Studio — transforme une idée en scènes vidéo IA</div>
+</header>
+
+<!-- API -->
+<div class="card">
+  <h2>⚙️ Paramètres API</h2>
+
+  <label>Clé API Agnes AI</label>
+  <input id="apiKey" type="password" placeholder="sk-...">
+
+  <div style="margin-top:8px">
+    <small>
+      Ta clé est enregistrée uniquement dans le navigateur.
+      Ne la partage jamais dans le code GitHub.
+    </small>
+  </div>
+</div>
+
+<!-- IMAGE -->
+<div class="card">
+  <h2>🖼️ 1. Personnage / image de référence</h2>
+
+  <div class="imageBox">
+    <input id="imageInput" type="file" accept="image/*">
+    <div id="imageText" style="margin-top:10px;color:#9da6bd">
+      Choisis l'image de ton personnage
+    </div>
+    <img id="preview">
+  </div>
+
+  <label>Description permanente du personnage</label>
+
+  <textarea id="character"
+placeholder="Exemple :
+Rico est un petit personnage attachant vivant dans une forêt mystérieuse.
+Il possède une silhouette ronde, de grands yeux expressifs et une apparence facilement reconnaissable.
+Il porte toujours les mêmes vêtements et accessoires.
+Son apparence doit rester strictement identique dans toutes les scènes."></textarea>
+
+  <small>
+    Cette description sert de référence pour conserver le même personnage d'une scène à l'autre.
+  </small>
+</div>
+
+<!-- SCENARIO -->
+<div class="card">
+  <h2>📖 2. Scénario</h2>
+
+  <textarea id="scenario"
+placeholder="Écris ici l'histoire que tu veux transformer en vidéo.
+
+Exemple :
+Rico vit seul dans une forêt mystérieuse. Un matin, il découvre un vieux carnet caché sous les racines d'un arbre. Le carnet semble lui être destiné. Il découvre une première mission qui lui demande de rejoindre le monde des humains afin de retrouver Marcel. Rico quitte alors sa forêt et découvre pour la première fois une immense ville humaine."></textarea>
+
+  <div class="grid">
+    <div>
+      <label>Nombre de scènes</label>
+      <select id="sceneCount">
+        <option value="3">3 scènes</option>
+        <option value="5" selected>5 scènes</option>
+        <option value="6">6 scènes</option>
+        <option value="8">8 scènes</option>
+        <option value="10">10 scènes</option>
+      </select>
     </div>
 
-    <div class="quota-bar" id="quota-bar">
-        <div class="quota-item"><span class="label">🎬 Vidéo</span><span class="value ok" id="quota-video">0/1</span><span class="label">RPM</span></div>
-        <div class="quota-item"><span class="label">📝 Texte</span><span class="value ok" id="quota-text">0/20</span><span class="label">RPM</span></div>
-        <div class="quota-item"><span class="label">⏱ File</span><span class="value ok" id="quota-queue">0</span><span class="label">vidéos</span></div>
+    <div>
+      <label>Durée par scène</label>
+      <select id="duration">
+        <option value="5">5 secondes</option>
+        <option value="6.4" selected>6,4 secondes</option>
+        <option value="10">10 secondes</option>
+      </select>
     </div>
+  </div>
+</div>
 
-    <div class="upload-area" id="upload-area">
-        <input type="file" id="file-input" accept="image/*">
-        <div class="upload-icon">🖼️</div>
-        <div class="upload-text">Appuyez pour choisir une image</div>
-        <div class="upload-hint">JPG, PNG, WEBP — elle servira de première frame pour toutes les vidéos</div>
-        <img id="preview-thumb" class="preview-thumb" alt="Aperçu">
+<!-- STYLE -->
+<div class="card">
+  <h2>🎨 3. Style visuel</h2>
+
+  <div id="styles" class="styleGrid"></div>
+</div>
+
+<!-- MOTION -->
+<div class="card">
+  <h2>🎥 4. Mouvement</h2>
+
+  <div id="motions" class="motionGrid"></div>
+</div>
+
+<!-- GENERATION -->
+<div class="card">
+
+  <div class="notice">
+    <b>Comment ça fonctionne ?</b><br>
+    Agnes 2.0 Flash transforme ton scénario en découpage cinématographique.
+    Chaque scène reçoit ensuite son propre prompt détaillé avant d'être envoyée à Agnes Video.
+  </div>
+
+  <button id="generateBtn" class="primary" style="margin-top:15px">
+    ✨ Générer l'histoire
+  </button>
+
+  <div id="globalProgress" class="hidden">
+    <div style="margin-top:15px">
+      <b id="progressText">Préparation...</b>
     </div>
-
-    <button class="btn btn-secondary" onclick="clearImage()" style="width:auto; margin-bottom:1.5rem;">
-        🗑️ Retirer l'image
-    </button>
-
-    <div class="section-title">🎨 Choisissez vos styles (cochez ceux qui vous plaisent)</div>
-    <div class="styles-grid" id="styles-grid"></div>
-
-    <div class="duration-info" id="duration-info">
-        ⏱ Durée : 6,4 s par vidéo (153 frames à 24 fps) — optimal pour le tier gratuit
+    <div class="progress">
+      <div id="progressBar" class="progressBar"></div>
     </div>
+  </div>
+</div>
 
-    <div class="options-row">
-        <div>
-            <label for="duration-select">Durée de chaque vidéo</label>
-            <select id="duration-select">
-                <option value="121">5,0 s — court et efficace</option>
-                <option value="153" selected>6,4 s — recommandé</option>
-                <option value="241">10,0 s — immersif</option>
-            </select>
-        </div>
-        <div>
-            <label for="motion-select">Mouvement / action (excentrique par défaut)</label>
-            <select id="motion-select">
-                <option value="excentrique" selected>🤪 Excentrique — imprévisible et absurde</option>
-                <option value="hallucinant">🌀 Hallucinant — surréaliste et déroutant</option>
-                <option value="spectaculaire">💥 Spectaculaire — explosions visuelles</option>
-                <option value="impressionnant">✨ Impressionnant — techniquement époustouflant</option>
-                <option value="shaolin">🥋 Kung-fu Shaolin — katas fluides</option>
-                <option value="hiphop">💃 Hip-hop — mouvements urbains</option>
-                <option value="robot">🤖 Robot saccadé — mécanique et précis</option>
-                <option value="ralenti">⏳ Ralenti — chaque micro-geste amplifié</option>
-                <option value="contemporain">🩰 Danse contemporaine — fluide et abstrait</option>
-                <option value="cinematique">🎬 Cinématique — lent et délibéré</option>
-            </select>
-        </div>
-    </div>
+<!-- STORYBOARD -->
+<div id="storyboardCard" class="card hidden">
+  <h2>🎞️ Storyboard</h2>
 
-    <button id="generate-btn" class="btn" onclick="startGeneration()" disabled>
-        🎬 Générer les vidéos
-    </button>
+  <div id="characterBible"></div>
 
-    <div id="status-panel" class="hidden" style="margin-top:1.5rem;">
-        <div class="status-line">
-            <span class="dot"></span>
-            <span id="global-status-text">Initialisation…</span>
-            <span id="cooldown-badge" class="cooldown-badge" style="display:none;"></span>
-        </div>
-    </div>
+  <div id="scenes"></div>
+</div>
 
-    <div id="queue-panel" class="queue-panel hidden"></div>
+<!-- VIDEOS -->
+<div id="videosCard" class="card hidden">
+  <h2>🎬 Vidéos générées</h2>
+  <div id="videos"></div>
+</div>
 
-    <div id="gallery-panel" class="hidden">
-        <div class="section-title">✦ Vidéos générées ✦</div>
-        <div id="video-grid" class="video-grid"></div>
-    </div>
+<!-- LOG -->
+<div class="card">
+  <h2>🛠️ Journal</h2>
+  <pre id="log">Prêt.</pre>
+</div>
 
-    <div id="log-box" class="log-box"></div>
 </div>
 
 <script>
-// ==================================================================
-// CONFIGURATION
-// ==================================================================
-const DEFAULT_API_KEY = "sk-DZ8qTzDZ9fWahefwquW7I3a0acKnlVCP7trguNigNJrQgQAL";
+
+/* =========================================================
+   CONFIGURATION AGNES
+========================================================= */
+
 const BASE_URL = "https://apihub.agnes-ai.com/v1";
-const RAW_URL  = "https://apihub.agnes-ai.com";
+const RAW_URL = "https://apihub.agnes-ai.com";
 
-const MODELS = { text: "agnes-2.0-flash", video: "agnes-video-v2.0" };
+const TEXT_MODEL = "agnes-2.0-flash";
+const VIDEO_MODEL = "agnes-video-v2.0";
 
-// Durées valides : 8n+1, ≤ 441
-const VALID_FRAMES = [121, 153, 241];
-const FRAME_RATE = 24;
+let imageData = null;
+let selectedStyle = null;
+let selectedMotion = "cinematic";
 
-// Timings optimisés pour le tier gratuit (RPM vidéo = 1/min)
-// On ne perd pas de temps : dès que la vidéo précédente est terminée,
-// on attend juste assez pour respecter le RPM.
-const FIRST_POLL_DELAY_MS = 45000;    // 45 s avant 1ère vérification (générations 121-241 frames ≈ 60-90 s)
-const POLL_INTERVAL_MS = 10000;       // 10 s entre vérifications (plus réactif)
-const MAX_POLL_ATTEMPTS = 40;
-const INTER_VIDEO_DELAY_MS = 60000;   // 60 s entre 2 créations vidéo (RPM = 1/min)
-const PRE_VIDEO_DELAY_MS = 60000;     // 60 s avant le premier clip
+/* =========================================================
+   STYLES
+========================================================= */
 
-// Backoff 429 progressif
-const RATE_LIMIT_BACKOFF_SEC = [5, 10, 15, 20, 30, 45, 60];
-const MAX_RATE_LIMIT_RETRIES = 7;
-
-// Backoff réseau
-const NETWORK_ERROR_BACKOFF_SEC = [5, 10, 15, 20, 30, 45, 60];
-const MAX_NETWORK_RETRIES = 7;
-
-// ==================================================================
-// 30 STYLES CAPABLES DE CRÉER DES VIDÉOS HALLUCINANTES
-// ==================================================================
 const STYLES = [
-    // ─── Animation / Manga (7) ───────────────────────────────────
-    { id:"anime", name:"Anime Cinématique", icon:"📖", category:"animation",
-      prompt:"Japanese anime style, cinematic cel-shaded animation, crisp ink outlines, expressive eyes, dynamic action lines, vibrant saturated colors, Studio Ghibli meets modern shonen aesthetic, epic dramatic lighting" },
-    { id:"ghibli", name:"Ghibli Onirique", icon:"🌿", category:"animation",
-      prompt:"Hand-painted watercolor textures, soft midday light, lush green landscapes, cel-shaded characters, painterly cumulus sky, gentle breeze through grass, muted earth tones, nostalgic magical realism, dreamlike atmosphere" },
-    { id:"arcane", name:"Arcane (peinture animée)", icon:"🎨", category:"animation",
-      prompt:"Painterly 2D animation with visible brushstrokes, rich saturated colors, dramatic lighting, cinematic composition, stylized character design, Arcane series aesthetic, oil-paint-meets-3D rendering" },
-    { id:"manga-nb", name:"Manga Noir & Blanc", icon:"🖤", category:"animation",
-      prompt:"Black and white manga style, stark ink outlines, dramatic screentones, high contrast chiaroscuro, dynamic action lines, Japanese comic aesthetic, Tite Kubo meets Junji Ito mood" },
-    { id:"cyberpunk-anime", name:"Cyberpunk Anime", icon:"🌃", category:"animation",
-      prompt:"1980s cyberpunk anime, neon-drenched Tokyo, rain-slicked streets, holographic advertisements, detailed mechanical design, Akira Katsuhiro Otomo style, chromatic aberration, lens flares" },
-    { id:"cartoon", name:"Cartoon Explosif", icon:"🖍️", category:"animation",
-      prompt:"Bright colorful 2D cartoon, bold outlines, exaggerated expressions, flat vibrant colors, playful chaotic energy, classic Saturday-morning animation style, slapstick visual comedy" },
-    { id:"pixel", name:"Pixel Art Rétro", icon:"👾", category:"animation",
-      prompt:"Pixel art animation, 16-bit retro video game aesthetic, limited color palette, dithering patterns, sprite animation, SNES and Genesis era, isometric perspective, CRT scanline glow" },
 
-    // ─── Cinéma Hallucinant (6) ────────────────────────────────────
-    { id:"wes", name:"Wes Anderson Symétrique", icon:"🎩", category:"cinema",
-      prompt:"Perfectly symmetrical composition, planimetric staging, flat frontal framing, pastel color palette (soft pink, mint green, pale yellow), meticulous production design, slow dolly-in, flat 40mm telephoto lens, centered subject, whimsical precision, deadpan framing, dollhouse aesthetic" },
-    { id:"kubrick", name:"Kubrick Géométrique", icon:"🎥", category:"cinema",
-      prompt:"One-point perspective, symmetrical centering, slow zoom, wide-angle interiors, geometric order, formal ritualized blocking, cool observational distance, restrained exact color palette, unsettling calm, clinical precision" },
-    { id:"villeneuve", name:"Villeneuve Monumental", icon:"🏜️", category:"cinema",
-      prompt:"Monumental scale, monochromatic desaturated palette blocks, atmospheric haze, long lenses, negative-space blocking, brutalist architecture, minimal contrast, golden sand tones with cool blue shadows, epic dust storms" },
-    { id:"refn", name:"Refn Neon Hypnotique", icon:"🌆", category:"cinema",
-      prompt:"Neon-soaked magenta and cyan palette, hypnotic slow motion, minimalist dialogue, symmetrical compositions, synthwave aesthetic, brutal elegance, shallow depth of field, electric atmosphere" },
-    { id:"noir", name:"Film Noir Ombre & Lumière", icon:"🖤", category:"cinema",
-      prompt:"Classic film noir, high contrast chiaroscuro lighting, deep shadows, venetian blind shadows, 1940s detective aesthetic, black and white cinematography, German Expressionism influence, cigarette smoke curling in light beams" },
-    { id:"chaplin", name:"Chaplin Burlesque", icon:"🎩", category:"cinema",
-      prompt:"Classic silent film era, black and white with subtle sepia tint, 1920s-1930s slapstick, Tramp persona, bowler hat, toothbrush mustache, oversized baggy trousers, comically large shoes, cane, theatrical pantomime, 16mm film grain, flickering projection, vaudeville energy" },
+{
+ name:"Anime",
+ icon:"🌸",
+ prompt:"high quality Japanese anime, detailed character animation, expressive eyes, cinematic anime lighting"
+},
 
-    // ─── Pictural / Peinture (6) ───────────────────────────────────
-    { id:"vangogh", name:"Van Gogh Tourbillon", icon:"🌻", category:"painterly",
-      prompt:"Vincent van Gogh oil painting style, swirling impasto brushstrokes, thick textured paint, vibrant complementary colors, expressive movement, post-impressionist energy, Starry Night dynamic swirls" },
-    { id:"dali", name:"Dali Surréaliste", icon:"🌀", category:"painterly",
-      prompt:"Salvador Dali surrealist style, melting clocks, impossible dreamscapes, meticulous rendering of fantastical elements, uncanny atmosphere, symbolic imagery, hyperrealistic absurdity" },
-    { id:"monet", name:"Monet Impressionniste", icon:"🌸", category:"painterly",
-      prompt:"Claude Monet impressionist style, soft dappled light, visible brushstrokes, water lilies atmosphere, pastel palette, en plein air feeling, shimmering atmospheric light" },
-    { id:"klimt", name:"Klimt Doré", icon:"✨", category:"painterly",
-      prompt:"Gustav Klimt style, gold leaf ornamentation, decorative patterns, sensuous curves, Byzantine mosaic influence, rich jewel tones, opulent golden textures" },
-    { id:"rembrandt", name:"Rembrandt Ténébreux", icon:"🕯️", category:"painterly",
-      prompt:"Rembrandt oil painting, dramatic chiaroscuro, warm candlelight, deep shadows, rich earth tones, Baroque master technique, textured canvas, single light source illuminating the subject" },
-    { id:"hokusai", name:"Hokusai Estampe", icon:"🌊", category:"painterly",
-      prompt:"Katsushika Hokusai ukiyo-e style, woodblock print aesthetic, flat colors, bold outlines, wave patterns, Japanese Edo period art, The Great Wave dynamic energy" },
+{
+ name:"Ghibli",
+ icon:"🌿",
+ prompt:"beautiful hand-painted Japanese animation, warm Studio Ghibli inspired atmosphere, soft natural lighting, detailed backgrounds"
+},
 
-    // ─── Genre / Ambiance (5) ──────────────────────────────────────
-    { id:"cyberpunk", name:"Cyberpunk Pluie Néon", icon:"🌃", category:"genre",
-      prompt:"Cyberpunk futuristic aesthetic, neon pink and cyan lighting, rain-slicked streets, holographic advertisements, Blade Runner atmosphere, chromatic aberration, lens flares, wet reflective surfaces" },
-    { id:"scifi", name:"Science-Fiction Cosmique", icon:"🚀", category:"genre",
-      prompt:"Epic science-fiction cinematic style, monumental scale, atmospheric haze, vast negative space, futuristic architecture, cold desaturated palette with warm accent lighting, cosmic dust particles, interstellar atmosphere" },
-    { id:"steampunk", name:"Steampunk Mécanique", icon:"⚙️", category:"genre",
-      prompt:"Steampunk Victorian aesthetic, brass and copper machinery, gears and cogs, steam-powered contraptions, leather and wood, sepia and bronze tones, steam clouds and mechanical rhythm" },
-    { id:"horreur", name:"Horreur Psychologique", icon:"👻", category:"genre",
-      prompt:"Horror cinematic style, deep shadows, unsettling stillness, desaturated palette, sudden contrast, psychological tension, slow creeping camera movement, unsettling atmosphere" },
-    { id:"vaporwave", name:"Vaporwave Nostalgique", icon:"🌴", category:"genre",
-      prompt:"Vaporwave aesthetic, nostalgic 90s imagery, pastel gradient, Greek statues, Windows 95 UI elements, ambient consumerism, VHS quality, retro-futurism, mallsoft atmosphere" },
+{
+ name:"Arcane",
+ icon:"⚡",
+ prompt:"stylized cinematic animated series, painterly 3D characters, dramatic lighting, detailed textures"
+},
 
-    // ─── Expérimental (4) ──────────────────────────────────────────
-    { id:"glitch", name:"Glitch Art Digital", icon:"📺", category:"experimental",
-      prompt:"Glitch art aesthetic, datamoshing, pixel sorting, RGB channel splitting, VHS tracking errors, corrupted digital signals, circuit bent visual noise, digital decay beauty, chromatic aberration" },
-    { id:"claymation", name:"Claymation Tactile", icon:"🧱", category:"experimental",
-      prompt:"Claymation stop-motion animation, plasticine texture, fingerprint details on clay, tactile handmade quality, Aardman Studios style, warm practical lighting, miniature set" },
-    { id:"sketch", name:"Croquis Animé", icon:"✏️", category:"experimental",
-      prompt:"Hand-drawn pencil sketch animation, visible sketch lines, cross-hatching, paper texture, graphite shading, animation that retains the rawness of the drawing process" },
-    { id:"collage", name:"Collage Découpé", icon:"✂️", category:"experimental",
-      prompt:"Mixed-media collage animation, torn paper edges, magazine cutouts, layered textures, stop-motion paper aesthetic, Terry Gilliam Monty Python style, absurd juxtapositions" },
-    { id:"liquid", name:"Liquide Abstrait", icon:"💧", category:"experimental",
-      prompt:"Liquid abstract animation, flowing paint in water, ink diffusion, fluid dynamics, macro photography aesthetic, organic shapes morphing, iridescent oil slick colors" }
+{
+ name:"Manga",
+ icon:"🖤",
+ prompt:"dynamic Japanese manga animation, expressive line art, cinematic framing, dramatic shadows"
+},
+
+{
+ name:"Cyber Anime",
+ icon:"🤖",
+ prompt:"futuristic cyberpunk anime, neon city, detailed characters, cinematic lighting"
+},
+
+{
+ name:"Cartoon",
+ icon:"😄",
+ prompt:"high quality modern animated cartoon, expressive characters, colorful cinematic environments"
+},
+
+{
+ name:"Pixel Art",
+ icon:"👾",
+ prompt:"beautiful animated pixel art, detailed pixel environments, cinematic pixel animation"
+},
+
+{
+ name:"Symmetric",
+ icon:"🔷",
+ prompt:"perfectly symmetrical cinematic composition, highly detailed visual design, dramatic lighting"
+},
+
+{
+ name:"Geometric",
+ icon:"🔺",
+ prompt:"stylized geometric world, clean shapes, cinematic composition, sophisticated visual design"
+},
+
+{
+ name:"Monumental",
+ icon:"🏛️",
+ prompt:"epic monumental cinematic scale, huge environments, dramatic perspective, spectacular lighting"
+},
+
+{
+ name:"Neon",
+ icon:"💜",
+ prompt:"neon cinematic atmosphere, glowing lights, colorful night environment, dramatic reflections"
+},
+
+{
+ name:"Film Noir",
+ icon:"🕵️",
+ prompt:"classic film noir cinematography, black and white, dramatic shadows, high contrast lighting"
+},
+
+{
+ name:"Burlesque",
+ icon:"🎭",
+ prompt:"stylized theatrical burlesque aesthetic, expressive characters, dramatic stage lighting"
+},
+
+{
+ name:"Van Gogh",
+ icon:"🌌",
+ prompt:"animated Van Gogh inspired painted aesthetic, visible brush strokes, rich expressive colors"
+},
+
+{
+ name:"Dali",
+ icon:"🕰️",
+ prompt:"surreal dreamlike cinematic world, melting forms, strange environments, Salvador Dali inspired surrealism"
+},
+
+{
+ name:"Monet",
+ icon:"🌅",
+ prompt:"soft impressionist painted aesthetic, atmospheric natural lighting, delicate brush strokes"
+},
+
+{
+ name:"Klimt",
+ icon:"✨",
+ prompt:"ornamental golden artistic aesthetic, luxurious patterns, elegant cinematic composition"
+},
+
+{
+ name:"Rembrandt",
+ icon:"🕯️",
+ prompt:"classical painterly cinematography, dramatic chiaroscuro lighting, warm shadows"
+},
+
+{
+ name:"Hokusai",
+ icon:"🌊",
+ prompt:"Japanese ukiyo-e inspired visual aesthetic, expressive waves, traditional Japanese composition"
+},
+
+{
+ name:"Cyberpunk",
+ icon:"🌃",
+ prompt:"dark futuristic cyberpunk city, neon signs, rain, cinematic atmosphere"
+},
+
+{
+ name:"Sci-Fi",
+ icon:"🚀",
+ prompt:"epic cinematic science fiction, futuristic technology, realistic environments, spectacular lighting"
+},
+
+{
+ name:"Steampunk",
+ icon:"⚙️",
+ prompt:"detailed steampunk world, brass machinery, Victorian technology, cinematic lighting"
+},
+
+{
+ name:"Horror",
+ icon:"👻",
+ prompt:"dark cinematic horror atmosphere, unsettling environments, dramatic shadows"
+},
+
+{
+ name:"Vaporwave",
+ icon:"🌴",
+ prompt:"dreamlike vaporwave aesthetic, pastel neon colors, surreal retro environments"
+},
+
+{
+ name:"Glitch",
+ icon:"📺",
+ prompt:"digital glitch aesthetic, futuristic visual distortions, cinematic electronic atmosphere"
+},
+
+{
+ name:"Claymation",
+ icon:"🧸",
+ prompt:"beautiful stop motion clay animation, handcrafted characters, miniature cinematic sets"
+},
+
+{
+ name:"Sketch",
+ icon:"✏️",
+ prompt:"animated hand-drawn sketch aesthetic, expressive pencil lines, artistic cinematic movement"
+},
+
+{
+ name:"Collage",
+ icon:"📰",
+ prompt:"artistic animated collage, layered paper textures, surreal cinematic composition"
+},
+
+{
+ name:"Liquid",
+ icon:"💧",
+ prompt:"surreal liquid abstract aesthetic, flowing shapes, glossy cinematic textures"
+}
+
 ];
 
-// ==================================================================
-// PROMPTS ALÉATOIRES PRÉ-ENREGISTRÉS
-// ==================================================================
-const RANDOM_ACTIONS = [
-    "The subject bursts into an explosive, wildly dynamic action sequence, defying physics",
-    "A mesmerizing transformation unfolds as the subject morphs and evolves before our eyes",
-    "The subject performs an intense, hypnotic ritual, every gesture deliberate and powerful",
-    "Reality bends and warps around the subject as they move with otherworldly grace",
-    "The subject launches into a spectacular display of acrobatic prowess and raw energy",
-    "A surreal, dreamlike sequence where the environment itself responds to the subject's movements",
-    "The subject emerges dramatically, radiating power and presence that fills the entire frame",
-    "Time seems to slow as the subject performs a series of impossibly elegant movements",
-    "The subject explodes into a flurry of chaotic yet strangely beautiful motion",
-    "A powerful, ritualistic sequence of movements — ancient, primal, and transcendent",
-    "The subject walks with quiet, magnetic intensity, their presence reshaping the world around them",
-    "A dazzling display of technical mastery — every movement precise, explosive, breathtaking",
-    "The subject dances with wild abandon, spinning and twisting with impossible athleticism",
-    "A dramatic reveal as the subject turns toward the camera, eyes blazing with intensity",
-    "The subject and environment merge — wind, light, and motion combining into a single visual poem"
+/* =========================================================
+   MOUVEMENTS
+========================================================= */
+
+const MOTIONS = [
+
+{
+ id:"cinematic",
+ label:"🎬 Cinématique",
+ prompt:"slow cinematic camera movement, natural character movement, professional film composition"
+},
+
+{
+ id:"dynamic",
+ label:"⚡ Dynamique",
+ prompt:"dynamic camera movement, energetic action, fast cinematic motion"
+},
+
+{
+ id:"walking",
+ label:"🚶 Marche",
+ prompt:"character naturally walking through the environment, camera following smoothly"
+},
+
+{
+ id:"closeup",
+ label:"👁️ Gros plan",
+ prompt:"slow camera push toward the character, expressive close-up, subtle facial movement"
+},
+
+{
+ id:"pan",
+ label:"🎥 Panoramique",
+ prompt:"smooth cinematic horizontal camera movement revealing the environment"
+},
+
+{
+ id:"tracking",
+ label:"📹 Tracking",
+ prompt:"smooth tracking shot following the character through the environment"
+},
+
+{
+ id:"action",
+ label:"💥 Action",
+ prompt:"dynamic action choreography, strong movement, cinematic camera"
+},
+
+{
+ id:"dramatic",
+ label:"🔥 Dramatique",
+ prompt:"dramatic camera movement, intense character acting, atmospheric lighting"
+}
+
 ];
 
-const RANDOM_LIGHTING = [
-    "dramatic golden hour backlight creating a luminous halo of dust and light",
-    "intense neon-soaked lighting with vibrant pink, cyan, and electric purple reflections",
-    "warm candlelight flickering against deep, dramatic shadows",
-    "bioluminescent glow emanating from the subject themselves, casting eerie light on surroundings",
-    "high-contrast chiaroscuro — a single beam of light cutting through total darkness",
-    "overcast, moody lighting with muted tones and thick atmospheric haze",
-    "sunlight streaming through a shattered ceiling, casting fractured geometric shadows",
-    "electric blue plasma arcs illuminating the scene from within the subject",
-    "sunset orange and deep violet sky, silhouetting the subject against a burning horizon",
-    "sterile fluorescent white light, clinical and unsettling, casting harsh shadows"
-];
+/* =========================================================
+   UI
+========================================================= */
 
-const RANDOM_CAMERA = [
-    "slow dolly-in, the camera gliding forward with cinematic smoothness, building tension",
-    "handheld tracking shot, organic and reactive movement that follows the action intimately",
-    "360-degree orbital movement around the subject, revealing every angle of the scene",
-    "low-angle shot looking up at the subject, emphasizing their power and dominance",
-    "extreme close-up on the subject's face, then rapid pull-back to reveal the full scene",
-    "static locked-off camera, allowing the subject's explosive movement to fill the frame",
-    "slow crane shot rising high above the scene, revealing the full scope of the environment",
-    "tracking shot from behind the subject as they move forward into the unknown",
-    "quick handheld zoom-punch into the subject's eyes at the climax of the action",
-    "fluid steadiest tracking shot circling the subject, never breaking visual contact"
-];
+function log(message){
 
-// ==================================================================
-// QUOTA TRACKER
-// ==================================================================
-const QUOTA_LIMITS = { text: 20, video: 1 };
-const WINDOW_MS = 60000;
+ const el = document.getElementById("log");
 
-const quotaTracker = {
-    text: [], video: [],
-    record(type) {
-        this[type].push(Date.now());
-        this.cleanup();
-        this.render();
-    },
-    cleanup() {
-        const cutoff = Date.now() - WINDOW_MS;
-        for (const t of ['text','video']) this[t] = this[t].filter(x => x > cutoff);
-    },
-    canProceed(type) {
-        this.cleanup();
-        return this[type].length < QUOTA_LIMITS[type];
-    },
-    waitTime(type) {
-        this.cleanup();
-        if (this[type].length < QUOTA_LIMITS[type]) return 0;
-        return Math.max(0, Math.ceil((this[type][0] + WINDOW_MS - Date.now()) / 1000));
-    },
-    render() {
-        const renderItem = (type) => {
-            const el = document.getElementById(`quota-${type}`);
-            if (!el) return;
-            const count = this[type].length;
-            const limit = QUOTA_LIMITS[type];
-            el.textContent = `${count}/${limit}`;
-            el.className = 'value ' + (count >= limit ? 'danger' : count >= limit - 1 ? 'warn' : 'ok');
-        };
-        renderItem('text'); renderItem('video');
-    }
-};
-setInterval(() => quotaTracker.render(), 1000);
+ const time = new Date().toLocaleTimeString();
 
-// ==================================================================
-// ÉTAT GLOBAL
-// ==================================================================
-let state = {
-    isRunning: false,
-    imageDataUri: null,
-    selectedStyles: new Set(),
-    durationFrames: 153,
-    motionKey: "excentrique",
-    queue: [],
-    completed: 0
-};
+ el.textContent += `\n[${time}] ${message}`;
 
-// ==================================================================
-// UTILITAIRES
-// ==================================================================
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function log(msg, cls="") {
-    const el = document.getElementById("log-box");
-    el.classList.add("visible");
-    const d = document.createElement("div");
-    d.className = cls;
-    d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-    el.appendChild(d);
-    el.scrollTop = el.scrollHeight;
-}
-function setStatus(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-}
-function showCooldown(sec) {
-    const el = document.getElementById("cooldown-badge");
-    if (!el) return;
-    if (sec > 0) { el.textContent = `⏸ ${sec}s`; el.style.display = "inline-block"; }
-    else { el.style.display = "none"; }
-}
-function esc(s) {
-    return String(s ?? "").replace(/[&<>"']/g, c => (
-        {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
-    ));
+ el.scrollTop = el.scrollHeight;
 }
 
-async function countdown(seconds, label) {
-    for (let s = seconds; s > 0; s--) {
-        if (!state.isRunning) throw new Error("Annulé");
-        setStatus("global-status-text", `${label} (${s}s)`);
-        showCooldown(s);
-        await sleep(1000);
-    }
-    showCooldown(0);
+function createStyles(){
+
+ const container = document.getElementById("styles");
+
+ STYLES.forEach((style,index)=>{
+
+   const button = document.createElement("button");
+
+   button.className = "style";
+
+   button.innerHTML =
+     `<span class="icon">${style.icon}</span>${style.name}`;
+
+   button.onclick = ()=>{
+
+     document.querySelectorAll(".style")
+       .forEach(x=>x.classList.remove("selected"));
+
+     button.classList.add("selected");
+
+     selectedStyle = index;
+
+     updateButton();
+   };
+
+   container.appendChild(button);
+
+ });
+
 }
 
-async function waitForQuota(type, label) {
-    while (!quotaTracker.canProceed(type)) {
-        const wait = quotaTracker.waitTime(type);
-        if (wait <= 0) break;
-        log(`⏸ Quota ${type} saturé. Attente ${wait}s…`, "warn");
-        await countdown(wait, label || `⏸ Quota ${type}`);
-    }
+function createMotions(){
+
+ const container = document.getElementById("motions");
+
+ MOTIONS.forEach((motion,index)=>{
+
+   const button = document.createElement("button");
+
+   button.className = "motion";
+
+   if(index===0){
+     button.classList.add("selected");
+   }
+
+   button.textContent = motion.label;
+
+   button.onclick = ()=>{
+
+     document.querySelectorAll(".motion")
+       .forEach(x=>x.classList.remove("selected"));
+
+     button.classList.add("selected");
+
+     selectedMotion = motion.id;
+   };
+
+   container.appendChild(button);
+
+ });
+
 }
 
-// ==================================================================
-// API FETCH (429 + réseau + quota)
-// ==================================================================
-async function apiFetch(url, options = {}, label = "API", type = null) {
-    let rateAttempt = 0, netAttempt = 0;
-    if (type) await waitForQuota(type, `⏸ Quota ${type}`);
+createStyles();
+createMotions();
 
-    while (true) {
-        let res;
-        try {
-            res = await fetch(url, options);
-        } catch (netErr) {
-            if (netAttempt >= MAX_NETWORK_RETRIES) throw new Error(`Erreur réseau : ${netErr.message}`);
-            const waitSec = NETWORK_ERROR_BACKOFF_SEC[netAttempt] || 60;
-            log(`⚠️ ${label} : erreur réseau. Retry ${netAttempt+1}/${MAX_NETWORK_RETRIES} dans ${waitSec}s…`, "warn");
-            await countdown(waitSec, "🔌 Erreur réseau");
-            netAttempt++;
-            continue;
-        }
-        netAttempt = 0;
-        if (res.status !== 429) {
-            if (type && res.ok) quotaTracker.record(type);
-            return res;
-        }
-        if (rateAttempt >= MAX_RATE_LIMIT_RETRIES) return res;
-        const waitSec = RATE_LIMIT_BACKOFF_SEC[rateAttempt] || 60;
-        log(`⚠️ ${label} : RATE LIMIT 429. Attente ${waitSec}s (${rateAttempt+1}/${MAX_RATE_LIMIT_RETRIES})…`, "warn");
-        await countdown(waitSec, "⏸ Rate limit");
-        rateAttempt++;
-    }
-}
+/* =========================================================
+   IMAGE
+========================================================= */
 
-function apiHeaders() {
-    return { "Authorization": `Bearer ${getApiKey()}`, "Content-Type": "application/json" };
-}
-function getApiKey() {
-    return (localStorage.getItem("agnes_api_key") || "").trim() || DEFAULT_API_KEY;
-}
-function saveApiKey() {
-    const v = document.getElementById("api-key-input").value.trim();
-    if (!v) { alert("Clé vide."); return; }
-    localStorage.setItem("agnes_api_key", v);
-    log("Clé API sauvegardée.", "ok");
-}
+document.getElementById("imageInput").addEventListener("change",event=>{
 
-function fileToDataUri(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = () => reject(new Error("Erreur lecture fichier."));
-        reader.readAsDataURL(file);
-    });
-}
+ const file = event.target.files[0];
 
-// ==================================================================
-// CONSTRUCTION DU PROMPT
-// ==================================================================
-function buildPrompt(style, motionKey) {
-    const action = RANDOM_ACTIONS[Math.floor(Math.random() * RANDOM_ACTIONS.length)];
-    const lighting = RANDOM_LIGHTING[Math.floor(Math.random() * RANDOM_LIGHTING.length)];
-    const camera = RANDOM_CAMERA[Math.floor(Math.random() * RANDOM_CAMERA.length)];
+ if(!file) return;
 
-    const motionDesc = {
-        "excentrique": "completely eccentric and unpredictable movements, absurd gestures, whimsical body language, joyful chaos, burlesque energy, surprising transitions",
-        "hallucinant": "hallucinatory, surreal, reality-bending movements that defy logic, dreamlike distortions, impossible physics, mind-altering visual spectacle",
-        "spectaculaire": "spectacular explosive motion, dramatic gestures, larger-than-life energy, show-stopping action, visual fireworks",
-        "impressionnant": "impressive, awe-inspiring movement, technically masterful, visually stunning, virtuoso performance",
-        "shaolin": "Shaolin kung-fu movements, flowing katas, martial arts precision, balanced stances, graceful and powerful transitions",
-        "hiphop": "hip-hop dance movements, urban style, body isolations, popping and locking, street dance energy, rhythmic swagger",
-        "robot": "robotic jerky movements, mechanical precision, angular body language, sudden pauses, android-like motion, servo-driven twitches",
-        "ralenti": "slow-motion movement, every micro-gesture visible and amplified, dreamlike pacing, suspended in time",
-        "contemporain": "contemporary dance, fluid abstract gestures, weight shifting, organic transitions, minimalist expressiveness, emotional body language",
-        "cinematique": "cinematic, deliberate motion with dramatic pauses, every gesture feeling intentional and powerful, epic presence"
-    }[motionKey] || "expressive movement";
+ const reader = new FileReader();
 
-    return `${style.prompt}. ${action}. ${motionDesc}. ${lighting}. ${camera}. Sound design: minimal foley, soft ambient textures, no music, no instruments, no dialogue. Cinematic, 9:16 vertical, 24fps, consistent character design, no text, no subtitles.`;
-}
+ reader.onload = e=>{
 
-// ==================================================================
-// UI — GRILLE DE STYLES
-// ==================================================================
-function renderStylesGrid() {
-    const grid = document.getElementById("styles-grid");
-    const categories = [
-        { key:"animation", label:"📖 Animation / Manga" },
-        { key:"cinema", label:"🎬 Cinéma" },
-        { key:"painterly", label:"🖼️ Pictural / Peinture" },
-        { key:"genre", label:"🎭 Genre / Ambiance" },
-        { key:"experimental", label:"🔬 Expérimental" }
-    ];
+   imageData = e.target.result;
 
-    grid.innerHTML = categories.map(cat => {
-        const styles = STYLES.filter(s => s.category === cat.key);
-        return `
-            <div style="width:100%; margin-bottom:0.5rem;">
-                <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.3rem;">${cat.label}</div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:0.5rem;">
-                    ${styles.map(s => `
-                        <label class="style-checkbox ${state.selectedStyles.has(s.id) ? 'checked' : ''}"
-                               data-id="${s.id}">
-                            <input type="checkbox" ${state.selectedStyles.has(s.id) ? 'checked' : ''}
-                                   onchange="toggleStyle('${s.id}', this.checked)">
-                            ${s.icon} ${s.name}
-                        </label>
-                    `).join("")}
-                </div>
-            </div>
-        `;
-    }).join("");
-    updateGenerateBtn();
-    updateDurationInfo();
-}
+   const preview = document.getElementById("preview");
 
-function toggleStyle(id, checked) {
-    if (checked) state.selectedStyles.add(id);
-    else state.selectedStyles.delete(id);
-    document.querySelectorAll(".style-checkbox").forEach(el => {
-        if (el.dataset.id === id) el.classList.toggle("checked", checked);
-    });
-    updateGenerateBtn();
-}
+   preview.src = imageData;
 
-function updateGenerateBtn() {
-    const btn = document.getElementById("generate-btn");
-    const hasImage = !!state.imageDataUri;
-    const hasStyles = state.selectedStyles.size > 0;
-    btn.disabled = !hasImage || !hasStyles || state.isRunning;
-    btn.textContent = state.isRunning
-        ? `🎬 Génération en cours… (${state.completed}/${state.queue.length})`
-        : `🎬 Générer ${state.selectedStyles.size} vidéo${state.selectedStyles.size > 1 ? 's' : ''}`;
-}
+   preview.style.display = "block";
 
-function updateDurationInfo() {
-    const frames = parseInt(document.getElementById("duration-select").value, 10);
-    const seconds = (frames / 24).toFixed(1);
-    const totalSeconds = (frames / 24 * state.selectedStyles.size).toFixed(0);
-    const info = document.getElementById("duration-info");
-    info.innerHTML = `⏱ Durée : <strong>${seconds} s</strong> par vidéo · ${state.selectedStyles.size} vidéo(s) sélectionnée(s) · Durée totale : <strong>~${totalSeconds} s</strong>`;
-}
+   document.getElementById("imageText").textContent =
+     file.name;
 
-// ==================================================================
-// UPLOAD IMAGE
-// ==================================================================
-const uploadArea = document.getElementById("upload-area");
-const fileInput = document.getElementById("file-input");
-const previewThumb = document.getElementById("preview-thumb");
+   log("Image chargée.");
 
-uploadArea.addEventListener("click", () => fileInput.click());
-uploadArea.addEventListener("dragover", (e) => { e.preventDefault(); uploadArea.classList.add("dragover"); });
-uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("dragover"));
-uploadArea.addEventListener("drop", (e) => {
-    e.preventDefault(); uploadArea.classList.remove("dragover");
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener("change", (e) => {
-    if (e.target.files.length) handleFile(e.target.files[0]);
+   updateButton();
+
+ };
+
+ reader.readAsDataURL(file);
+
 });
 
-async function handleFile(file) {
-    if (!file.type.startsWith("image/")) { alert("Fichier non image."); return; }
-    if (file.size > 10 * 1024 * 1024) { alert("Image trop lourde (max 10 MB)."); return; }
-    try {
-        const dataUri = await fileToDataUri(file);
-        state.imageDataUri = dataUri;
-        previewThumb.src = dataUri;
-        previewThumb.classList.add("visible");
-        log(`Image chargée (${(file.size / 1024).toFixed(0)} Ko).`, "ok");
-        updateGenerateBtn();
-    } catch (err) { alert("Erreur : " + err.message); }
+/* =========================================================
+   API KEY
+========================================================= */
+
+const apiKeyInput = document.getElementById("apiKey");
+
+apiKeyInput.value = localStorage.getItem("agnes_api_key") || "";
+
+apiKeyInput.addEventListener("input",()=>{
+
+ localStorage.setItem(
+   "agnes_api_key",
+   apiKeyInput.value.trim()
+ );
+
+ updateButton();
+
+});
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+function updateButton(){
+
+ const button = document.getElementById("generateBtn");
+
+ const ok =
+   apiKeyInput.value.trim() &&
+   imageData &&
+   selectedStyle !== null &&
+   document.getElementById("scenario").value.trim();
+
+ button.disabled = !ok;
+
 }
 
-function clearImage() {
-    state.imageDataUri = null;
-    fileInput.value = "";
-    previewThumb.src = "";
-    previewThumb.classList.remove("visible");
-    log("Image retirée.", "");
-    updateGenerateBtn();
+document.getElementById("scenario")
+.addEventListener("input",updateButton);
+
+document.getElementById("character")
+.addEventListener("input",updateButton);
+
+/* =========================================================
+   API TEXT
+========================================================= */
+
+async function callText(prompt){
+
+ const key = apiKeyInput.value.trim();
+
+ const response = await fetch(
+   `${BASE_URL}/chat/completions`,
+   {
+     method:"POST",
+
+     headers:{
+       "Content-Type":"application/json",
+       "Authorization":`Bearer ${key}`
+     },
+
+     body:JSON.stringify({
+
+       model:TEXT_MODEL,
+
+       messages:[
+         {
+           role:"system",
+           content:
+           `Tu es un réalisateur spécialisé dans les films d'animation IA.
+
+Ton travail consiste à transformer une histoire en scènes vidéo cohérentes.
+
+Le personnage principal doit conserver exactement la même apparence dans toutes les scènes.
+
+Chaque scène doit être visuellement claire et réalisable en vidéo.
+
+Réponds UNIQUEMENT avec du JSON valide.
+Aucun markdown.
+Aucun commentaire.`
+         },
+
+         {
+           role:"user",
+           content:prompt
+         }
+       ],
+
+       temperature:0.7,
+
+       max_tokens:5000
+
+     })
+   }
+ );
+
+ const raw = await response.text();
+
+ if(!response.ok){
+
+   throw new Error(
+     `Erreur Agnes Text ${response.status}: ${raw}`
+   );
+
+ }
+
+ let data;
+
+ try{
+
+   data = JSON.parse(raw);
+
+ }catch(e){
+
+   throw new Error(
+     "Réponse Agnes invalide : "+raw
+   );
+
+ }
+
+ let content =
+   data?.choices?.[0]?.message?.content;
+
+ if(!content){
+
+   throw new Error(
+     "Aucun contenu retourné par Agnes."
+   );
+
+ }
+
+ content = content
+   .replace(/^```json/i,"")
+   .replace(/^```/i,"")
+   .replace(/```$/,"")
+   .trim();
+
+ return JSON.parse(content);
+
 }
 
-// ==================================================================
-// FILE D'ATTENTE
-// ==================================================================
-function renderQueue() {
-    const panel = document.getElementById("queue-panel");
-    if (state.queue.length === 0) { panel.classList.add("hidden"); return; }
-    panel.classList.remove("hidden");
+/* =========================================================
+   VIDEO GENERATION
+========================================================= */
 
-    panel.innerHTML = state.queue.map((item, i) => {
-        let icon = "⏳", statusText = "En attente";
-        if (item.status === "processing") { icon = "◐"; statusText = item.progress || "Génération…"; }
-        else if (item.status === "done") { icon = "✅"; statusText = "Terminé"; }
-        else if (item.status === "failed") { icon = "❌"; statusText = "Échec"; }
+async function createVideo(scenePrompt){
 
-        const cls = item.status === "pending" ? "pending"
-                  : item.status === "processing" ? "processing"
-                  : item.status === "done" ? "done" : "failed";
+ const key = apiKeyInput.value.trim();
 
-        const durationSec = (item.numFrames / 24).toFixed(1);
-        return `
-            <div class="queue-item ${cls}">
-                <div class="queue-icon">${icon}</div>
-                <div class="queue-info">
-                    <div class="queue-style">${item.style.icon} ${esc(item.style.name)}</div>
-                    <div class="queue-meta">
-                        <span>⏱ ${durationSec}s</span>
-                        <span>🎬 ${esc(item.motionKey)}</span>
-                    </div>
-                </div>
-                <div class="queue-status">${statusText}</div>
-            </div>
-        `;
-    }).join("");
+ const duration =
+   parseFloat(document.getElementById("duration").value);
+
+ /*
+   Agnes utilise num_frames.
+   153 images à 24 fps ≈ 6,375 secondes.
+ */
+
+ let frames;
+
+ if(duration <= 5){
+
+   frames = 121;
+
+ }else if(duration <= 6.4){
+
+   frames = 153;
+
+ }else{
+
+   frames = 241;
+
+ }
+
+ const body = {
+
+   model:VIDEO_MODEL,
+
+   prompt:scenePrompt,
+
+   image:imageData,
+
+   num_frames:frames,
+
+   frame_rate:24,
+
+   width:720,
+
+   height:1280
+
+ };
+
+ log("Envoi de la scène à Agnes Video...");
+
+ const response = await fetch(
+   `${BASE_URL}/videos`,
+   {
+     method:"POST",
+
+     headers:{
+       "Content-Type":"application/json",
+       "Authorization":`Bearer ${key}`
+     },
+
+     body:JSON.stringify(body)
+   }
+ );
+
+ const raw = await response.text();
+
+ if(!response.ok){
+
+   throw new Error(
+     `Erreur vidéo ${response.status}: ${raw}`
+   );
+
+ }
+
+ let data;
+
+ try{
+
+   data = JSON.parse(raw);
+
+ }catch(e){
+
+   throw new Error(
+     "Réponse vidéo invalide : "+raw
+   );
+
+ }
+
+ const videoId =
+   data?.id ||
+   data?.video_id ||
+   data?.data?.id ||
+   data?.data?.video_id;
+
+ if(!videoId){
+
+   throw new Error(
+     "Impossible de trouver le video_id dans : "+raw
+   );
+
+ }
+
+ log("Vidéo créée. ID : "+videoId);
+
+ return videoId;
+
 }
 
-// ==================================================================
-// WORKFLOW PRINCIPAL
-// ==================================================================
-async function startGeneration() {
-    if (state.isRunning) return;
+/* =========================================================
+   POLLING
+========================================================= */
 
-    if (!state.imageDataUri) { alert("Choisissez une image."); return; }
-    if (state.selectedStyles.size === 0) { alert("Cochez au moins un style."); return; }
+async function waitForVideo(videoId){
 
-    state.isRunning = true;
-    state.completed = 0;
+ const key = apiKeyInput.value.trim();
 
-    const durationSelect = document.getElementById("duration-select");
-    const motionSelect = document.getElementById("motion-select");
+ while(true){
 
-    state.durationFrames = parseInt(durationSelect.value, 10) || 153;
-    state.motionKey = motionSelect.value;
+   const url =
+     `${RAW_URL}/agnesapi?video_id=${encodeURIComponent(videoId)}&model_name=${encodeURIComponent(VIDEO_MODEL)}`;
 
-    // Construire la file d'attente
-    const selectedStyles = Array.from(state.selectedStyles)
-        .map(id => STYLES.find(s => s.id === id))
-        .filter(Boolean);
+   const response = await fetch(
+     url,
+     {
+       headers:{
+         "Authorization":`Bearer ${key}`
+       }
+     }
+   );
 
-    state.queue = selectedStyles.map(style => ({
-        style,
-        status: "pending",
-        videoUrl: null,
-        videoId: null,
-        progress: null,
-        numFrames: state.durationFrames,
-        motionKey: state.motionKey,
-        prompt: null
-    }));
+   const raw = await response.text();
 
-    // Nettoyer l'interface
-    document.getElementById("video-grid").innerHTML = "";
-    document.getElementById("gallery-panel").classList.add("hidden");
-    document.getElementById("log-box").innerHTML = "";
-    document.getElementById("status-panel").classList.remove("hidden");
-    document.getElementById("queue-panel").classList.remove("hidden");
+   if(!response.ok){
 
-    renderQueue();
-    updateGenerateBtn();
+     throw new Error(
+       `Erreur polling ${response.status}: ${raw}`
+     );
 
-    const durationSec = (state.durationFrames / 24).toFixed(1);
-    log(`🎬 Démarrage — ${state.queue.length} vidéos à générer`, "hl");
-    log(`Durée par vidéo : ${durationSec}s | Mouvement : ${state.motionKey}`, "");
-    log(`Estimation totale : ~${Math.ceil(state.queue.length * (parseInt(durationSec) + 60) / 60)} minutes`, "");
+   }
 
-    try {
-        // Pause pré-vidéo (respect RPM vidéo = 1/min)
-        if (quotaTracker.video.length > 0) {
-            const wait = quotaTracker.waitTime("video");
-            if (wait > 0) {
-                log(`Pause de ${wait}s avant le premier appel vidéo (quota vidéo saturé)…`, "warn");
-                await countdown(wait, "⏸ Quota vidéo");
-            }
-        } else {
-            log(`Pause de ${PRE_VIDEO_DELAY_MS / 1000}s avant le premier clip…`, "warn");
-            await countdown(Math.floor(PRE_VIDEO_DELAY_MS / 1000), "⏸ Pause pré-vidéo");
-        }
+   let data;
 
-        // Génération séquentielle
-        for (let i = 0; i < state.queue.length; i++) {
-            if (!state.isRunning) break;
-            const item = state.queue[i];
+   try{
 
-            log(`━━━ Vidéo ${i+1}/${state.queue.length} — ${item.style.icon} ${item.style.name} ━━━`, "hl");
-            item.status = "processing";
-            item.progress = "Création…";
-            renderQueue();
+     data = JSON.parse(raw);
 
-            // Construire le prompt
-            const finalPrompt = buildPrompt(item.style, state.motionKey);
-            item.prompt = finalPrompt;
+   }catch(e){
 
-            // Créer la tâche vidéo
-            let videoId;
-            try {
-                const body = {
-                    model: MODELS.video,
-                    prompt: finalPrompt,
-                    image: state.imageDataUri,
-                    num_frames: item.numFrames,
-                    frame_rate: FRAME_RATE
-                };
+     throw new Error(
+       "Réponse polling invalide : "+raw
+     );
 
-                const res = await apiFetch(`${BASE_URL}/videos`, {
-                    method: "POST", headers: apiHeaders(), body: JSON.stringify(body)
-                }, `Vidéo ${i+1} · Création`, "video");
+   }
 
-                if (!res.ok) {
-                    const errText = await res.text();
-                    throw new Error(`HTTP ${res.status} — ${errText.slice(0, 120)}`);
-                }
-                const data = await res.json();
-                videoId = data.video_id || data.id || data.task_id;
-                if (!videoId) throw new Error("Pas de video_id.");
-                item.videoId = videoId;
-                log(`Vidéo ${i+1} : tâche créée (${String(videoId).slice(0, 25)}…)`, "ok");
-            } catch (err) {
-                log(`Vidéo ${i+1} : échec création — ${err.message}`, "err");
-                item.status = "failed";
-                item.progress = "Échec création";
-                renderQueue();
-                if (i < state.queue.length - 1 && state.isRunning) {
-                    await countdown(Math.floor(INTER_VIDEO_DELAY_MS / 1000), "⏸ Pause inter-vidéo");
-                }
-                continue;
-            }
+   log(
+     "Statut vidéo : "+
+     JSON.stringify(data)
+   );
 
-            // Polling
-            try {
-                const url = await pollVideo(videoId, `Vidéo ${i+1}`, item);
-                item.status = "done";
-                item.videoUrl = url;
-                item.progress = "Terminé";
-                state.completed++;
-                renderQueue();
-                addVideoToGallery(item);
-                document.getElementById("gallery-panel").classList.remove("hidden");
-                log(`Vidéo ${i+1} : ✅ TERMINÉE`, "ok");
-            } catch (err) {
-                log(`Vidéo ${i+1} : ${err.message}`, "err");
-                item.status = "failed";
-                item.progress = "Échec";
-                renderQueue();
-            }
+   const status =
+     String(
+       data?.status ||
+       data?.data?.status ||
+       ""
+     ).toLowerCase();
 
-            updateGenerateBtn();
+   if(
+     status.includes("fail") ||
+     status.includes("error")
+   ){
 
-            // Pause inter-vidéo (RPM vidéo = 1/min)
-            if (i < state.queue.length - 1 && state.isRunning) {
-                log(`Pause de ${INTER_VIDEO_DELAY_MS / 1000}s avant la vidéo suivante…`, "warn");
-                await countdown(Math.floor(INTER_VIDEO_DELAY_MS / 1000), "⏸ Pause inter-vidéo");
-            }
-        }
+     throw new Error(
+       "La génération vidéo a échoué : "+
+       JSON.stringify(data)
+     );
 
-        log(`✦ Workflow terminé — ${state.completed}/${state.queue.length} vidéos générées ✦`,
-            state.completed > 0 ? "ok" : "err");
-        setStatus("global-status-text", `✦ ${state.completed}/${state.queue.length} vidéos générées ✦`);
+   }
 
-    } catch (err) {
-        log(`Erreur globale : ${err.message}`, "err");
-        setStatus("global-status-text", "Erreur : " + err.message);
-    } finally {
-        state.isRunning = false;
-        showCooldown(0);
-        updateGenerateBtn();
+   /*
+      Recherche de l'URL vidéo dans différentes
+      structures possibles.
+   */
+
+   const videoUrl =
+     data?.video_url ||
+     data?.url ||
+     data?.video?.url ||
+     data?.data?.video_url ||
+     data?.data?.url ||
+     data?.data?.video?.url;
+
+   if(videoUrl){
+
+     return videoUrl;
+
+   }
+
+   if(
+     status === "completed" ||
+     status === "complete" ||
+     status === "success" ||
+     status === "succeeded" ||
+     status === "done"
+   ){
+
+     const possible =
+       data?.output ||
+       data?.data?.output;
+
+     if(typeof possible === "string"){
+
+       return possible;
+
+     }
+
+     throw new Error(
+       "La vidéo est terminée mais son URL est introuvable : "+
+       JSON.stringify(data)
+     );
+
+   }
+
+   await new Promise(
+     resolve=>setTimeout(resolve,5000)
+   );
+
+ }
+
+}
+
+/* =========================================================
+   STORYBOARD
+========================================================= */
+
+async function generateStoryboard(){
+
+ const scenario =
+   document.getElementById("scenario").value.trim();
+
+ const character =
+   document.getElementById("character").value.trim();
+
+ const sceneCount =
+   document.getElementById("sceneCount").value;
+
+ const style =
+   STYLES[selectedStyle];
+
+ const motion =
+   MOTIONS.find(x=>x.id===selectedMotion);
+
+ const prompt = `
+
+HISTOIRE :
+
+${scenario}
+
+PERSONNAGE PRINCIPAL :
+
+${character}
+
+STYLE VISUEL :
+
+${style.prompt}
+
+MOUVEMENT :
+
+${motion.prompt}
+
+NOMBRE DE SCÈNES :
+
+${sceneCount}
+
+Crée un découpage cinématographique complet.
+
+Objectifs :
+
+1. Commencer par établir clairement le personnage et son environnement.
+2. Faire progresser l'histoire naturellement.
+3. Respecter strictement la chronologie.
+4. Donner à chaque scène une action claire.
+5. Garder exactement le même personnage.
+6. Utiliser des transitions logiques entre les scènes.
+7. Donner des indications de caméra.
+8. Donner des indications de lumière.
+9. Donner des indications d'environnement.
+10. Donner des indications précises sur les mouvements du personnage.
+
+Le JSON doit avoir exactement cette structure :
+
+{
+  "character_bible":"description extrêmement précise du personnage à conserver dans toutes les scènes",
+  "scenes":[
+    {
+      "number":1,
+      "title":"titre",
+      "description":"description de la scène",
+      "prompt":"prompt vidéo complet"
     }
+  ]
 }
 
-// ==================================================================
-// POLLING VIDÉO
-// ==================================================================
-async function pollVideo(videoId, label, item) {
-    // Attente initiale
-    let remaining = Math.floor(FIRST_POLL_DELAY_MS / 1000);
-    while (remaining > 0 && state.isRunning) {
-        item.progress = `Attente… ${remaining}s`;
-        renderQueue();
-        await sleep(1000);
-        remaining--;
-    }
-    if (!state.isRunning) throw new Error("Annulé");
+Le nombre de scènes doit être exactement ${sceneCount}.
 
-    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-        if (!state.isRunning) throw new Error("Annulé");
-        if (attempt > 0) {
-            let r = Math.floor(POLL_INTERVAL_MS / 1000);
-            while (r > 0 && state.isRunning) {
-                item.progress = `Vérif. ${attempt+1} — ${r}s`;
-                renderQueue();
-                await sleep(1000);
-                r--;
-            }
-        }
+Chaque prompt doit être suffisamment détaillé pour permettre à un modèle vidéo de générer la scène sans avoir besoin de connaître les autres scènes.
 
-        const url = `${RAW_URL}/agnesapi?video_id=${encodeURIComponent(videoId)}&model_name=${encodeURIComponent(MODELS.video)}`;
-        try {
-            const r = await apiFetch(url, { method: "GET", headers: apiHeaders() }, `${label} · Poll`);
-            const d = await r.json();
-            const status = d.status || "unknown";
-            const progress = d.progress ?? 0;
-            log(`${label} : statut="${status}", progression=${progress}%`);
-            item.progress = `${progress}%`;
-            renderQueue();
+`;
 
-            if (status === "completed" || status === "succeeded") {
-                const videoUrl = d.metadata?.url || d.url || d.output?.url;
-                if (!videoUrl) throw new Error("Terminé mais pas d'URL.");
-                return videoUrl;
-            }
-            if (status === "failed" || status === "error")
-                throw new Error("La génération a échoué.");
-        } catch (err) {
-            if (err.message.includes("échoué") || err.message.includes("URL")) throw err;
-            log(`${label} : erreur polling, on réessaie…`, "warn");
-        }
-    }
-    throw new Error("Délai maximal dépassé.");
+ return await callText(prompt);
+
 }
 
-// ==================================================================
-// GALERIE
-// ==================================================================
-function addVideoToGallery(item) {
-    const grid = document.getElementById("video-grid");
-    const el = document.createElement("div");
-    el.className = "video-item";
-    const durationSec = (item.numFrames / 24).toFixed(1);
-    el.innerHTML = `
-        <video controls preload="metadata" autoplay muted playsinline>
-            <source src="${item.videoUrl}" type="video/mp4">
-        </video>
-        <div class="video-caption">
-            <div class="video-caption-title">${item.style.icon} ${esc(item.style.name)}</div>
-            <div class="video-caption-meta">⏱ ${durationSec}s · 🎬 ${esc(item.motionKey)}</div>
-        </div>
-    `;
-    grid.appendChild(el);
+/* =========================================================
+   DISPLAY STORYBOARD
+========================================================= */
+
+function displayStoryboard(story){
+
+ const card =
+   document.getElementById("storyboardCard");
+
+ card.classList.remove("hidden");
+
+ document.getElementById("characterBible").innerHTML =
+ `
+ <div class="notice">
+ <b>📌 Bible du personnage</b><br><br>
+ ${escapeHtml(story.character_bible || "")}
+ </div>
+ `;
+
+ const container =
+   document.getElementById("scenes");
+
+ container.innerHTML = "";
+
+ story.scenes.forEach((scene,index)=>{
+
+   const div =
+     document.createElement("div");
+
+   div.className = "scene";
+
+   div.id = `scene-${index}`;
+
+   div.innerHTML = `
+
+     <div class="sceneHead">
+
+       <div class="sceneTitle">
+         Scène ${scene.number} — ${escapeHtml(scene.title)}
+       </div>
+
+       <div class="status" id="status-${index}">
+         En attente
+       </div>
+
+     </div>
+
+     <p style="color:#aeb7cb;line-height:1.5">
+       ${escapeHtml(scene.description)}
+     </p>
+
+     <details>
+       <summary style="cursor:pointer;color:#9f94ff">
+         Voir le prompt vidéo
+       </summary>
+
+       <pre>${escapeHtml(scene.prompt)}</pre>
+
+     </details>
+
+     <div id="video-${index}"></div>
+
+   `;
+
+   container.appendChild(div);
+
+ });
+
 }
 
-// ==================================================================
-// INIT
-// ==================================================================
-(async function init() {
-    const stored = localStorage.getItem("agnes_api_key");
-    if (stored) document.getElementById("api-key-input").value = stored;
+/* =========================================================
+   GENERATE ALL SCENES
+========================================================= */
 
-    renderStylesGrid();
-    quotaTracker.render();
+async function generateAllScenes(story){
 
-    document.getElementById("duration-select").addEventListener("change", updateDurationInfo);
+ const videosCard =
+   document.getElementById("videosCard");
 
-    log("CinéIA Spectrum — Prêt", "ok");
-    console.log("CinéIA Spectrum — Prêt");
-})();
+ videosCard.classList.remove("hidden");
+
+ const videos =
+   document.getElementById("videos");
+
+ videos.innerHTML = "";
+
+ const total = story.scenes.length;
+
+ for(let i=0;i<total;i++){
+
+   const scene = story.scenes[i];
+
+   const status =
+     document.getElementById(`status-${i}`);
+
+   status.textContent =
+     "Génération...";
+
+   status.className =
+     "status running";
+
+   document.getElementById("progressText")
+     .textContent =
+       `Génération scène ${i+1}/${total}...`;
+
+   document.getElementById("progressBar")
+     .style.width =
+       `${(i/total)*100}%`;
+
+   try{
+
+     /*
+       On enrichit le prompt de chaque scène avec
+       la bible du personnage et le style.
+     */
+
+     const style =
+       STYLES[selectedStyle];
+
+     const motion =
+       MOTIONS.find(x=>x.id===selectedMotion);
+
+     const finalPrompt = `
+
+CHARACTER CONTINUITY:
+
+${story.character_bible}
+
+VISUAL STYLE:
+
+${style.prompt}
+
+CAMERA / MOTION:
+
+${motion.prompt}
+
+SCENE:
+
+${scene.prompt}
+
+IMPORTANT:
+
+The main character must remain visually identical
+to the reference image.
+
+Preserve face, body proportions, clothes,
+colors, accessories and overall identity.
+
+Do not redesign the character.
+
+Create natural cinematic movement.
+
+No text.
+No subtitles.
+No logos.
+No watermark.
+
+`;
+
+     const videoId =
+       await createVideo(finalPrompt);
+
+     const url =
+       await waitForVideo(videoId);
+
+     status.textContent =
+       "Terminée";
+
+     status.className =
+       "status done";
+
+     const videoContainer =
+       document.getElementById(`video-${i}`);
+
+     videoContainer.innerHTML = `
+
+       <video controls playsinline preload="metadata"
+              src="${url}"></video>
+
+       <div style="margin-top:8px">
+         <button class="secondary"
+                 onclick="window.open('${url}','_blank')">
+           ▶️ Ouvrir la vidéo
+         </button>
+       </div>
+
+     `;
+
+     const videoCard =
+       document.createElement("div");
+
+     videoCard.className = "scene";
+
+     videoCard.innerHTML = `
+       <b>🎬 Scène ${scene.number} — ${escapeHtml(scene.title)}</b>
+       <video controls playsinline preload="metadata"
+              src="${url}"></video>
+     `;
+
+     videos.appendChild(videoCard);
+
+     log(
+       `Scène ${i+1}/${total} terminée.`
+     );
+
+     document.getElementById("progressBar")
+       .style.width =
+         `${((i+1)/total)*100}%`;
+
+     /*
+       Agnes limite le nombre de générations vidéo.
+       On laisse une minute entre deux générations.
+     */
+
+     if(i < total-1){
+
+       for(let seconds=60;seconds>0;seconds--){
+
+         document.getElementById("progressText")
+           .textContent =
+             `Scène ${i+1} terminée — prochaine scène dans ${seconds}s`;
+
+         await new Promise(
+           resolve=>setTimeout(resolve,1000)
+         );
+
+       }
+
+     }
+
+   }catch(error){
+
+     console.error(error);
+
+     status.textContent =
+       "Erreur";
+
+     status.className =
+       "status error";
+
+     document.getElementById(`video-${i}`)
+       .innerHTML = `
+       <div class="notice">
+         ❌ ${escapeHtml(error.message)}
+       </div>
+       `;
+
+     log(
+       `ERREUR scène ${i+1}: ${error.message}`
+     );
+
+     /*
+       On continue malgré l'erreur pour essayer
+       les scènes suivantes.
+     */
+
+   }
+
+ }
+
+ document.getElementById("progressText")
+   .textContent =
+     "Toutes les scènes ont été traitées.";
+
+ document.getElementById("progressBar")
+   .style.width = "100%";
+
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+document.getElementById("generateBtn")
+.addEventListener("click",async()=>{
+
+ const button =
+   document.getElementById("generateBtn");
+
+ button.disabled = true;
+
+ document.getElementById("globalProgress")
+   .classList.remove("hidden");
+
+ document.getElementById("storyboardCard")
+   .classList.add("hidden");
+
+ document.getElementById("videosCard")
+   .classList.add("hidden");
+
+ document.getElementById("scenes")
+   .innerHTML = "";
+
+ document.getElementById("videos")
+   .innerHTML = "";
+
+ try{
+
+   log("====================================");
+
+   log("Début de génération.");
+
+   log("Analyse du scénario avec Agnes 2.0 Flash...");
+
+   const story =
+     await generateStoryboard();
+
+   if(
+     !story ||
+     !Array.isArray(story.scenes) ||
+     story.scenes.length === 0
+   ){
+
+     throw new Error(
+       "Agnes n'a pas généré de scènes valides."
+     );
+
+   }
+
+   log(
+     `${story.scenes.length} scènes générées.`
+   );
+
+   displayStoryboard(story);
+
+   log("Storyboard terminé.");
+
+   /*
+      Petite pause avant de commencer les vidéos.
+   */
+
+   await new Promise(
+     resolve=>setTimeout(resolve,1000)
+   );
+
+   await generateAllScenes(story);
+
+   log("Génération complète terminée.");
+
+ }catch(error){
+
+   console.error(error);
+
+   log(
+     "ERREUR GÉNÉRALE : "+error.message
+   );
+
+   alert(
+     "Une erreur est survenue.\n\n"+
+     error.message+
+     "\n\nRegarde le journal en bas de page."
+   );
+
+ }finally{
+
+   button.disabled = false;
+
+ }
+
+});
+
+/* =========================================================
+   UTILITAIRE HTML
+========================================================= */
+
+function escapeHtml(value){
+
+ return String(value ?? "")
+   .replace(/&/g,"&amp;")
+   .replace(/</g,"&lt;")
+   .replace(/>/g,"&gt;")
+   .replace(/"/g,"&quot;")
+   .replace(/'/g,"&#039;");
+
+}
+
+/* =========================================================
+   INITIALISATION
+========================================================= */
+
+updateButton();
+
+log("CinéIA Spectrum prêt.");
+log("Ajoute une image, une clé API et un scénario.");
+
 </script>
+
 </body>
 </html>
